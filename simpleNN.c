@@ -48,7 +48,7 @@ typedef struct {
     // hidden layer Bias
     double bias_h[HIDDEN_NODES];
 
-    // Weights - hidden to output 
+    // Weights - hidden to output
     double weights_ho[HIDDEN_NODES][OUTPUT_NODES];
     // Output layer biases
     double bias_o[OUTPUT_NODES];
@@ -126,7 +126,7 @@ void train_network(NeuralNetwork *nn, const double *input, const double *target)
         }
         hidden_deltas[j] = hidden_errors[j] * sigmoid_derivative(hidden_output[j]); // Using sigmoid_derivative from nnMaths.h
     }
-// Update process 
+// Update process
     // 4. hidden-to-output weights and biases - update
     for (int j = 0; j < HIDDEN_NODES; j++) {
         for (int k = 0; k < OUTPUT_NODES; k++) {
@@ -155,6 +155,9 @@ int main() {
     Dataset training_dataset;
     Dataset target_dataset;
 
+    // --- Training Phase ---
+    printf("--- Training Phase ---\n");
+
     // Load training data
     if (load_csv_data("training_data.csv", INPUT_NODES, &training_dataset) != 0) {
         fprintf(stderr, "Failed to load training data. Exiting.\n");
@@ -164,8 +167,7 @@ int main() {
     // Load target data
     if (load_csv_data("target_data.csv", OUTPUT_NODES, &target_dataset) != 0) {
         fprintf(stderr, "Failed to load target data. Exiting.\n");
-        // Free training data if target data loading failed
-        free_dataset(&training_dataset);
+        free_dataset(&training_dataset); // Free training data if target data loading failed
         return 1;
     }
 
@@ -197,22 +199,67 @@ int main() {
         }
     }
 
-    printf("\nTraining complete. Testing the network:\n");
+    printf("\nTraining complete. Testing with training data:\n");
 
-    // Test the trained network - now uses dynamically loaded data
+    // Test the trained network with its own training data
     for (int i = 0; i < training_dataset.num_rows; i++) {
         double hidden_output[HIDDEN_NODES];
         double output[OUTPUT_NODES];
         forward_propagate(&nn, training_dataset.data[i], hidden_output, output);
-        // This print statement assumes INPUT_NODES=2 and OUTPUT_NODES=1.
-        // You might need to adjust it if your network dimensions become truly dynamic.
         printf("Input: [%.0f, %.0f], Expected: %.0f, Predicted: %f (Rounded: %.0f)\n",
                training_dataset.data[i][0], training_dataset.data[i][1], target_dataset.data[i][0], output[0], round(output[0]));
     }
 
-    // Free allocated memory
+    // Free training and target dataset memory
     free_dataset(&training_dataset);
     free_dataset(&target_dataset);
+
+    // --- Inference Phase ---
+    printf("\n--- Inference Phase ---\n");
+
+    // We'll directly use "data.csv" as the filename
+    const char *inference_filepath = "data.csv"; 
+
+    Dataset inference_dataset;
+
+    // Load inference data
+    // The number of columns must match INPUT_NODES
+    if (load_csv_data(inference_filepath, INPUT_NODES, &inference_dataset) != 0) {
+        fprintf(stderr, "Failed to load inference data from '%s'. Exiting inference phase.\n", inference_filepath);
+        return 1; // Exit program if inference data can't be loaded
+    }
+
+    printf("\nMaking predictions on new data from '%s':\n", inference_filepath);
+
+    // Iterate through inference data and make predictions
+    double hidden_output_inf[HIDDEN_NODES];
+    double output_inf[OUTPUT_NODES]; // Array to hold predictions for current input
+
+    for (int i = 0; i < inference_dataset.num_rows; i++) {
+        forward_propagate(&nn, inference_dataset.data[i], hidden_output_inf, output_inf);
+
+        // Print input data
+        printf("Input: [");
+        for (int j = 0; j < INPUT_NODES; j++) {
+            printf("%.2f", inference_dataset.data[i][j]);
+            if (j < INPUT_NODES - 1) {
+                printf(", ");
+            }
+        }
+        printf("], Predicted Output: [");
+
+        // Print predicted output (assuming single output for simplicity in this example)
+        for (int k = 0; k < OUTPUT_NODES; k++) {
+            printf("%f (Rounded: %.0f)", output_inf[k], round(output_inf[k]));
+            if (k < OUTPUT_NODES - 1) {
+                printf(", ");
+            }
+        }
+        printf("]\n");
+    }
+
+    // Free inference dataset memory
+    free_dataset(&inference_dataset);
 
     return 0;
 }
