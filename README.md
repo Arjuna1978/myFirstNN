@@ -8,9 +8,11 @@ The network uses a single hidden layer, sigmoid activation functions, and trains
 
 ## NN architechture
 
-#define INPUT_NODES 2
-#define HIDDEN_NODES 4
-#define OUTPUT_NODES 1
+* INPUT_NODES 2
+
+* HIDDEN_NODES 4
+
+* OUTPUT_NODES 1
 
 
 ## Project Structure
