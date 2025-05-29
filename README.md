@@ -1,6 +1,7 @@
 # Simple Feed-Forward Neural Network in C
 
 This project implements a basic feed-forward neural network (FNN) in C. 
+I based it on: https://www.geeksforgeeks.org/backpropagation-in-neural-network/
 I have made it capable of learning simple 1d patterns eg this variable results in that output
 I have given a XOR logic gate as an example. 
 
